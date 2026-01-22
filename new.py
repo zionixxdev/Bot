@@ -546,19 +546,23 @@ async def force_join_check(update: Update, context: ContextTypes.DEFAULT_TYPE) -
     return True
 
 def truncate_json_result(data: dict, max_length: int = 1500) -> Tuple[str, bool]:
-    """Truncate JSON result if too long, returns (text, is_truncated)"""
+    """Truncate JSON result if too long, returns (html_text, is_truncated)"""
     try:
         formatted = json.dumps(data, indent=2, ensure_ascii=False)
-        if len(formatted) <= max_length:
-            return f"```json\n{formatted}\n```", False
-        
-        # Truncate and add truncation notice
-        truncated = formatted[:max_length] + "\n... [TRUNCATED - DATA TOO LONG] ...\n"
-        truncated += f"\n📁 Full results available as JSON file (Total length: {len(formatted)} characters)"
-        return f"```json\n{truncated}\n```", True
-    except Exception as e:
-        return f"```\n{str(data)[:max_length]}\n```", True
 
+        if len(formatted) <= max_length:
+            return f"<pre><code>{formatted}</code></pre>", False
+
+        # Truncate and add notice
+        truncated = formatted[:max_length]
+        truncated += "\n... [TRUNCATED - DATA TOO LONG] ...\n"
+        truncated += f"\n📁 Full results available as JSON file (Total length: {len(formatted)} characters)"
+
+        return f"<pre><code>{truncated}</code></pre>", True
+
+    except Exception:
+        safe_text = str(data)[:max_length]
+        return f"<pre><code>{safe_text}</code></pre>", True
 async def send_api_result(update: Update, context: ContextTypes.DEFAULT_TYPE, 
                          service: str, query: str, result: dict):
     """Send formatted API result with truncation if too long"""
